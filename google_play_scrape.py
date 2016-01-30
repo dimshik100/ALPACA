@@ -1,6 +1,7 @@
 from cookielib import CookieJar
 from urllib import urlencode
 import urllib2
+from bs4 import BeautifulSoup
 
 from six import iteritems
 
@@ -46,11 +47,21 @@ class GooglePlayScraper(object):
             'hl': 'en'
         }
         response = self._get_data_from_rest_request(action, arguments, url)
-        cover_image_url = 'https:' + response.split('img class="cover-image" src=\"')[1].split('\"')[0]
-        
-
+        properties = [prop.split('"')[0] for prop in response.split('itemprop="')]
+        # descriptors = [response.split(property + '">') for property in properties]
 
         return
+
+    def _extract_data(self, response):
+        cover_image_url = 'https:' + response.split('img class="cover-image" src=\"')[1].split('\"')[0]
+        screenshots = []
+        screenshot_block = response.split('img class="screenshot" data-expand-to="full-screenshot')
+        for tag in screenshot_block:
+            url = tag.split('src="')[1]
+            if len(url) > 1:
+                screenshots.append('https:' + url.split('\"')[0])
+
+
 
     def _get_data_from_rest_request(self, action, arguments, url):
         query_url = self._build_url(url, action, arguments)
